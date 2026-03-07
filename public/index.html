@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Pipeline Lite — Prospect Intel Generator</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{--bg:#0c0f14;--surface:#161b24;--surface2:#1c2230;--border:#2a3142;--text:#e4e8ef;--text2:#8b95a8;--accent:#f0a500;--accent2:#ff6b35;--green:#22c55e;--red:#ef4444;--blue:#3b82f6}
+body{background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px}
+.container{max-width:600px;width:100%;background:var(--surface);border-radius:16px;border:1px solid var(--border);padding:40px}
+.brand{text-align:center;margin-bottom:32px}
+.brand h1{font-size:1.6rem;color:var(--accent)}
+.brand p{color:var(--text2);font-size:.9rem;margin-top:6px}
+label{display:block;font-size:.85rem;color:var(--text2);margin-bottom:6px;margin-top:16px}
+label .req{color:var(--accent2)}
+input,textarea{width:100%;padding:12px 14px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:.95rem;outline:none;transition:border .2s}
+input:focus,textarea:focus{border-color:var(--accent)}
+textarea{resize:vertical;min-height:60px}
+.row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.section-title{font-size:.8rem;color:var(--accent);text-transform:uppercase;letter-spacing:1px;margin-top:28px;margin-bottom:4px;padding-bottom:6px;border-bottom:1px solid var(--border)}
+button{width:100%;padding:14px;background:linear-gradient(135deg,var(--accent),var(--accent2));color:#000;font-weight:700;font-size:1rem;border:none;border-radius:10px;cursor:pointer;margin-top:28px;transition:opacity .2s}
+button:hover{opacity:.9}
+button:disabled{opacity:.5;cursor:not-allowed}
+#status{margin-top:16px;text-align:center;font-size:.9rem;min-height:24px}
+.spinner{display:inline-block;width:16px;height:16px;border:2px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:spin .8s linear infinite;vertical-align:middle;margin-right:8px}
+@keyframes spin{to{transform:rotate(360deg)}}
+.status-generating{color:var(--accent)}
+.status-done{color:var(--green)}
+.status-error{color:var(--red)}
+.result-link{color:var(--accent);text-decoration:underline}
+</style>
+</head>
+<body>
+<div class="container">
+  <div class="brand">
+    <h1>Pipeline Lite</h1>
+    <p>Prospect Intelligence Dashboard Generator</p>
+  </div>
+  <form id="form">
+    <div class="section-title">Business Info</div>
+    <label>Website URL <span class="req">*</span></label>
+    <input type="url" name="website" placeholder="https://example.com" required>
+    <div class="row">
+      <div>
+        <label>Owner / Contact Name <span class="req">*</span></label>
+        <input type="text" name="ownerName" placeholder="Jane Doe" required>
+      </div>
+      <div>
+        <label>Title (optional)</label>
+        <input type="text" name="ownerTitle" placeholder="CEO / Founder">
+      </div>
+    </div>
+    <div class="section-title">Social Links (optional)</div>
+    <div class="row">
+      <div>
+        <label>LinkedIn</label>
+        <input type="url" name="linkedin" placeholder="https://linkedin.com/in/...">
+      </div>
+      <div>
+        <label>Facebook</label>
+        <input type="url" name="facebook" placeholder="https://facebook.com/...">
+      </div>
+    </div>
+    <div class="row">
+      <div>
+        <label>Instagram</label>
+        <input type="url" name="instagram" placeholder="https://instagram.com/...">
+      </div>
+      <div>
+        <label>YouTube</label>
+        <input type="url" name="youtube" placeholder="https://youtube.com/...">
+      </div>
+    </div>
+    <div class="row">
+      <div>
+        <label>TikTok</label>
+        <input type="url" name="tiktok" placeholder="https://tiktok.com/@...">
+      </div>
+      <div></div>
+    </div>
+    <div class="section-title">Additional Context</div>
+    <label>Notes (optional)</label>
+    <textarea name="notes" placeholder="Industry, key services, competitors..."></textarea>
+    <button type="submit" id="btn">Generate Prospect Dashboard</button>
+  </form>
+  <div id="status"></div>
+</div>
+<script>
+const form = document.getElementById('form');
+const btn = document.getElementById('btn');
+const status = document.getElementById('status');
+
+function clearStatus() {
+  while (status.firstChild) status.removeChild(status.firstChild);
+}
+
+function showGenerating(msg) {
+  clearStatus();
+  status.className = 'status-generating';
+  var spinner = document.createElement('span');
+  spinner.className = 'spinner';
+  status.appendChild(spinner);
+  status.appendChild(document.createTextNode(' ' + msg));
+}
+
+function showDone(url) {
+  clearStatus();
+  status.className = 'status-done';
+  status.appendChild(document.createTextNode('Dashboard ready! '));
+  var link = document.createElement('a');
+  link.href = url;
+  link.target = '_blank';
+  link.className = 'result-link';
+  link.textContent = 'Open Dashboard';
+  status.appendChild(link);
+}
+
+function showError(msg) {
+  clearStatus();
+  status.className = 'status-error';
+  status.textContent = msg;
+}
+
+form.addEventListener('submit', async function(e) {
+  e.preventDefault();
+  btn.disabled = true;
+  showGenerating('Scraping website & social profiles...');
+
+  var data = {};
+  var fd = new FormData(form);
+  fd.forEach(function(v, k) { if (v) data[k] = v; });
+
+  try {
+    var steps = [
+      'Scraping website & social profiles...',
+      'Analyzing with AI...',
+      'Building dashboard...'
+    ];
+    var step = 0;
+    var interval = setInterval(function() {
+      step++;
+      if (step < steps.length) showGenerating(steps[step]);
+    }, 8000);
+
+    var res = await fetch('/api/generate', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data)
+    });
+
+    clearInterval(interval);
+
+    if (!res.ok) {
+      var err = await res.json().catch(function() { return { error: 'Generation failed' }; });
+      throw new Error(err.error || 'Generation failed');
+    }
+
+    var result = await res.json();
+    showDone(result.url);
+  } catch (err) {
+    showError(err.message || 'Something went wrong');
+  } finally {
+    btn.disabled = false;
+  }
+});
+</script>
+</body>
+</html>

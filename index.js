@@ -1,3 +1,4 @@
+// Pipeline Lite - Prospect Intel Agent v1.0
 const express = require('express');
 const crypto = require('crypto');
 const path = require('path');

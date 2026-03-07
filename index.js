@@ -61,6 +61,10 @@ app.get('/health', function (req, res) {
   res.json({ status: 'ok', dashboards: dashboards.size });
 });
 
-app.listen(PORT, function () {
-  console.log('Pipeline Lite running on port ' + PORT);
-});
+if (require.main === module) {
+  app.listen(PORT, function () {
+    console.log('Pipeline Lite running on port ' + PORT);
+  });
+}
+
+module.exports = app;
